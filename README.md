@@ -9,6 +9,12 @@ products:
 
 # Virtual node Autoscale Demo
 
+
+> **_NOTE:_**  This repo contains changes from the original (forked from [Azure-Samples](https://github.com/Azure-Samples/virtual-node-autoscale) ).
+In this repo the deprecated K8S APIs are removed in favor of newer and more stable API versions [See  K8S 1.16 API deprecation](https://kubernetes.io/blog/2019/07/18/api-deprecations-in-1-16/).
+
+> In this sample I'm using helm 3, also updated the charts in order to use this version.
+
 This repository demonstrates how to use custom metrics in combination with the Kubernetes Horizontal Pod Autoscaler to autoscale an application. Virtual nodes let you scale quickly and easily run Kubernetes pods on Azure Container Instances where you'll pay only for the container instance runtime. 
 
 This repository will guide you through first installing the virtual node admission controller, followed by the Prometheus Operator. Then create a Prometheus instance and install the Prometheus Metric Adapter. With these in place, the provided Helm chart will install our demo application, along with supporting monitoring components, like a **ServiceMonitor** for Prometheus, a Horizontal Pod Autoscaler, and a custom container that will count the instances of the application and expose them to Prometheus. Finally, an optional Grafana dashboard can be installed to view the metrics in real-time.
@@ -21,14 +27,19 @@ This demo was used at Microsoft Ignite 2018 Kenote. Check out the [video](https:
 * [MutatingAdmissionWebhook admission controller](https://kubernetes.io/docs/admin/extensible-admission-controllers/#external-admission-webhooks) activated
 * Running Ingress controller (nginx or similar)
 
-## Initialize Helm
+## Helm
 
-Helm will be used to install the both the demo application and the supporting components. First ensure you have Helm [installed](https://docs.helm.sh/using_helm/#installing-helm). Once installed, you will need to initialize your cluster to use Helm. To do this, you will install the `Tiller` component with the `helm init` command.
+Helm will be used to install the both the demo application and the supporting components. First ensure you have Helm 3 [installed](https://docs.helm.sh/using_helm/#installing-helm). 
 
+Verify your helm version:
+
+```bash
+helm version
 ```
-kubectl -n kube-system create sa tiller
-kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller
-helm init --service-account tiller
+Add the official helm stable charts:
+
+```bash
+helm repo add stable https://kubernetes-charts.storage.googleapis.com/
 ```
 
 ## Install Virtual Node admission-controller (OPTIONAL)
@@ -68,7 +79,7 @@ spec:
 ### Install
 
 ```
-helm install --name vn-affinity ./charts/vn-affinity-admission-controller
+helm install name vn-affinity ./charts/vn-affinity-admission-controller
 ```
 
 Label the namespace you wish enable the webhook to function on
@@ -173,12 +184,12 @@ By default, the online store will also send data to [Application Insights](https
 
 ```bash
 export APP_INSIGHT_KEY=<INSTRUMENTATION_KEY>
-helm install ./charts/online-store --name online-store --set counter.specialNodeName=$VK_NODE_NAME,app.ingress.host=store.$INGRESS_EXTERNAL_IP.nip.io,appInsight.key=$APP_INSIGHT_KEY,app.ingress.annotations."kubernetes\.io/ingress\.class"=$INGRESS_CLASS_ANNOTATION
+helm install online-store ./charts/online-store --set counter.specialNodeName=$VK_NODE_NAME,app.ingress.host=store.$INGRESS_EXTERNAL_IP.nip.io,appInsight.key=$APP_INSIGHT_KEY,app.ingress.annotations."kubernetes\.io/ingress\.class"=$INGRESS_CLASS_ANNOTATION
 ```
 To run this demo **without** Application Insights, run the command:
 
 ```bash
-helm install ./charts/online-store --name online-store --set counter.specialNodeName=$VK_NODE_NAME,app.ingress.host=store.$INGRESS_EXTERNAL_IP.nip.io,appInsight.enabled=false,app.ingress.annotations."kubernetes\.io/ingress\.class"=$INGRESS_CLASS_ANNOTATION
+helm install online-store ./charts/online-store --set counter.specialNodeName=$VK_NODE_NAME,app.ingress.host=store.$INGRESS_EXTERNAL_IP.nip.io,appInsight.enabled=false,app.ingress.annotations."kubernetes\.io/ingress\.class"=$INGRESS_CLASS_ANNOTATION
 ```
 
 ## Deploy the Prometheus Metric Adapter
@@ -186,7 +197,7 @@ helm install ./charts/online-store --name online-store --set counter.specialNode
 NOTE: if you have the Azure application insights adapter installed, you'll need to remove that first.
 
 ```bash
-helm install stable/prometheus-adapter --name prometheus-adaptor -f ./online-store/prometheus-config/prometheus-adapter/values.yaml
+helm install prometheus-adaptor stable/prometheus-adapter -f ./online-store/prometheus-config/prometheus-adapter/values.yaml
 ```
 
 There might be some lag time between when you create the adapter and when the metrics are available.
@@ -237,7 +248,7 @@ $ kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1/namespaces/default/pod/*
 This optional step installs a Grafana dashboard to view measured metrics in real-time.
 
 ```bash
-helm install stable/grafana --name grafana -f grafana/values.yaml
+helm install grafana stable/grafana -f grafana/values.yaml
 ```
 
 Retreive admin user password for UI access

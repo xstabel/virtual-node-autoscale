@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "online-store.fullname" . }}-counter
@@ -9,6 +9,10 @@ metadata:
     heritage: {{ .Release.Service }}
 spec:
   replicas: {{ .Values.counter.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "online-store.name" . }}-counter
+      release: {{ .Release.Name }}
   template:
     metadata:
       labels:

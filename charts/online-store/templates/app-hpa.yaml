@@ -4,7 +4,7 @@ metadata:
   name: {{ template "online-store.fullname" . }} 
 spec:
   scaleTargetRef:
-    apiVersion: extensions/v1beta1
+    apiVersion: apps/v1
     kind: Deployment
     name: {{ template "online-store.fullname" . }} 
   minReplicas: {{ .Values.hpa.minReplicas }}

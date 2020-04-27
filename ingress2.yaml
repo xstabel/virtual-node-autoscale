@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: ngnix
+  labels:
+    app: online-store
+    chart: online-store-0.1.0
+    heritage: Helm
+    release: online-store
+  name: online-store
+  namespace: default
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: online-store
+          servicePort: 80
